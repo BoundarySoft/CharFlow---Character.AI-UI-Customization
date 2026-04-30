@@ -188,8 +188,14 @@
             const link = document.createElement('link');
             link.rel = 'stylesheet'; link.href = fontUrl;
             link.id = `cai-font-${fontId.replace(/\s/g, '-')}`;
+            link.onerror = () => {
+                showNotification('Your custom font URL could not be loaded. Check that the link is a valid Google Fonts URL and try again.', 'error');
+                loadedFonts.delete(fontId);
+                activeFontLinks.delete(link);
+            };
             document.head.appendChild(link);
-            activeFontLinks.add(link); loadedFonts.add(fontId);
+            activeFontLinks.add(link);
+            loadedFonts.add(fontId);
         }
 
         function getFontFamily() {
@@ -290,10 +296,17 @@ ${MSG} .prose *,
 
             // Text colors
             if (textColorMode === 'global') {
-                css += `${MSG} p { color: ${textColorGlobal} !important; }`;
+                css += `
+        ${AI} [data-testid="completed-message"] p, ${AI} [data-testid="active-message"] p,
+        ${AI} [data-testid="generating-message"] p, ${AI} [data-testid="streaming-message"] p,
+        ${AI} [class*="message-bubble"] p,
+        ${USER} [data-testid="completed-message"] p, ${USER} [data-testid="active-message"] p,
+        ${USER} [data-testid="generating-message"] p, ${USER} [data-testid="streaming-message"] p,
+        ${USER} [class*="message-bubble"] p { color: ${textColorGlobal} !important; }
+    `;
             } else {
                 css += `${AI} [data-testid="completed-message"] p,${AI} [data-testid="active-message"] p,${AI} [data-testid="generating-message"] p,${AI} [data-testid="streaming-message"] p,${AI} [class*="message-bubble"] p { color: ${textColorAi} !important; }
-                ${USER} [data-testid="completed-message"] p,${USER} [data-testid="active-message"] p,${USER} [data-testid="generating-message"] p,${USER} [data-testid="streaming-message"] p,${USER} [class*="message-bubble"] p { color: ${textColorUser} !important; }`;
+    ${USER} [data-testid="completed-message"] p,${USER} [data-testid="active-message"] p,${USER} [data-testid="generating-message"] p,${USER} [data-testid="streaming-message"] p,${USER} [class*="message-bubble"] p { color: ${textColorUser} !important; }`;
             }
 
             // Italic
@@ -1413,8 +1426,13 @@ ${MSG} .prose *,
                 const img = g.querySelector("img");
                 if (!img) continue;
                 const isUser = g.querySelector(".flex-row-reverse") !== null;
-                if (isUser && !userAvatar) userAvatar = await imageToDataURL(img.src);
-                if (!isUser && !botAvatar) botAvatar = await imageToDataURL(img.src);
+                try {
+                    if (isUser && !userAvatar) userAvatar = await imageToDataURL(img.src);
+                    if (!isUser && !botAvatar) botAvatar = await imageToDataURL(img.src);
+                } catch (e) {
+                    console.warn('[CharFlow] Could not load one of the avatars:', e);
+                    // silently continue — avatars are optional
+                }
                 if (userAvatar && botAvatar) break;
             }
             return { userAvatar, botAvatar };
