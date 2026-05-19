@@ -1,11 +1,7 @@
-# CharFlow---Character.AI-UI-Customization
-A Tampermonkey extension for Character.AI
+# CharFlow - Character AI Customization
+A Tampermonkey userscript that lets you completely customize the look and feel of Character.AI chat pages.
 
 ![CharFlow preview](https://i.imgur.com/6slCpdM.png)
-
-# CharFlow - Character AI Customization
-
-A Tampermonkey userscript that lets you completely customize the look and feel of Character.AI chat pages.
 
 ## Main Purpose
 
